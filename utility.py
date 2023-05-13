@@ -181,3 +181,5 @@ def evaluate_model (model, test_dataset):
 	# create and show confusion matrix and roc
 	metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
 	plot_roc_curve(y_true, y_score, 4, class_labels)
+
+set_seed ()
