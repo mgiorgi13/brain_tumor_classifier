@@ -399,45 +399,45 @@ def Cnn8():
         At the end we add a dense layer with 4 units (one for each class) and softmax activation function.
 
         Epoch 1/20
-        135/135 [==============================] - 36s 266ms/step - loss: 0.1496 - accuracy: 0.9447 - val_loss: 0.4183 - val_accuracy: 0.8713 - lr: 0.0010
+        135/135 [==============================] - 39s 274ms/step - loss: 1.1699 - accuracy: 0.4577 - val_loss: 0.9447 - val_accuracy: 0.6105 - lr: 0.0010
         Epoch 2/20
-        135/135 [==============================] - 39s 286ms/step - loss: 0.1417 - accuracy: 0.9491 - val_loss: 0.3930 - val_accuracy: 0.8804 - lr: 0.0010
+        135/135 [==============================] - 35s 261ms/step - loss: 0.8814 - accuracy: 0.6356 - val_loss: 0.7575 - val_accuracy: 0.7189 - lr: 0.0010
         Epoch 3/20
-        135/135 [==============================] - 35s 260ms/step - loss: 0.0988 - accuracy: 0.9653 - val_loss: 0.4798 - val_accuracy: 0.8517 - lr: 0.0010
+        135/135 [==============================] - 38s 282ms/step - loss: 0.6838 - accuracy: 0.7344 - val_loss: 0.6388 - val_accuracy: 0.7559 - lr: 0.0010
         Epoch 4/20
-        135/135 [==============================] - 35s 262ms/step - loss: 0.0888 - accuracy: 0.9693 - val_loss: 0.4874 - val_accuracy: 0.8804 - lr: 0.0010
+        135/135 [==============================] - 35s 262ms/step - loss: 0.5556 - accuracy: 0.7819 - val_loss: 0.5399 - val_accuracy: 0.7860 - lr: 0.0010
         Epoch 5/20
-        135/135 [==============================] - 37s 273ms/step - loss: 0.0772 - accuracy: 0.9742 - val_loss: 0.6510 - val_accuracy: 0.8601 - lr: 0.0010
+        135/135 [==============================] - 38s 281ms/step - loss: 0.4522 - accuracy: 0.8381 - val_loss: 0.4480 - val_accuracy: 0.8238 - lr: 0.0010
         Epoch 6/20
-        135/135 [==============================] - 38s 281ms/step - loss: 0.0826 - accuracy: 0.9698 - val_loss: 0.4128 - val_accuracy: 0.8979 - lr: 0.0010
+        135/135 [==============================] - 38s 285ms/step - loss: 0.3785 - accuracy: 0.8572 - val_loss: 0.4355 - val_accuracy: 0.8406 - lr: 0.0010
         Epoch 7/20
-        135/135 [==============================] - 35s 259ms/step - loss: 0.0711 - accuracy: 0.9735 - val_loss: 0.3950 - val_accuracy: 0.8937 - lr: 0.0010
+        135/135 [==============================] - 35s 259ms/step - loss: 0.3089 - accuracy: 0.8830 - val_loss: 0.4234 - val_accuracy: 0.8427 - lr: 0.0010
         Epoch 8/20
-        135/135 [==============================] - 37s 274ms/step - loss: 0.0250 - accuracy: 0.9937 - val_loss: 0.3758 - val_accuracy: 0.9000 - lr: 1.0000e-04
+        135/135 [==============================] - 38s 281ms/step - loss: 0.2648 - accuracy: 0.9033 - val_loss: 0.5015 - val_accuracy: 0.8154 - lr: 0.0010
         Epoch 9/20
-        135/135 [==============================] - 36s 266ms/step - loss: 0.0128 - accuracy: 0.9970 - val_loss: 0.3860 - val_accuracy: 0.9028 - lr: 1.0000e-04
+        135/135 [==============================] - 36s 264ms/step - loss: 0.2165 - accuracy: 0.9195 - val_loss: 0.3163 - val_accuracy: 0.8965 - lr: 0.0010
         Epoch 10/20
-        135/135 [==============================] - 38s 283ms/step - loss: 0.0097 - accuracy: 0.9984 - val_loss: 0.3896 - val_accuracy: 0.9063 - lr: 1.0000e-04
+        135/135 [==============================] - 38s 281ms/step - loss: 0.1547 - accuracy: 0.9407 - val_loss: 0.3290 - val_accuracy: 0.8923 - lr: 0.0010
         Epoch 11/20
-        135/135 [==============================] - 35s 259ms/step - loss: 0.0080 - accuracy: 0.9991 - val_loss: 0.3986 - val_accuracy: 0.9070 - lr: 1.0000e-04
+        135/135 [==============================] - 36s 263ms/step - loss: 0.1249 - accuracy: 0.9547 - val_loss: 0.3455 - val_accuracy: 0.9028 - lr: 0.0010
         Epoch 12/20
-        135/135 [==============================] - 36s 269ms/step - loss: 0.0061 - accuracy: 0.9988 - val_loss: 0.4169 - val_accuracy: 0.9091 - lr: 1.0000e-04
+        135/135 [==============================] - 37s 278ms/step - loss: 0.1173 - accuracy: 0.9574 - val_loss: 0.3448 - val_accuracy: 0.8972 - lr: 0.0010
         Epoch 13/20
-        135/135 [==============================] - 35s 261ms/step - loss: 0.0053 - accuracy: 0.9995 - val_loss: 0.4176 - val_accuracy: 0.9091 - lr: 1.0000e-04
+        135/135 [==============================] - 35s 261ms/step - loss: 0.0849 - accuracy: 0.9702 - val_loss: 0.3481 - val_accuracy: 0.9000 - lr: 0.0010
         Epoch 14/20
-        135/135 [==============================] - 38s 281ms/step - loss: 0.0045 - accuracy: 0.9995 - val_loss: 0.4209 - val_accuracy: 0.9098 - lr: 1.0000e-05
+        135/135 [==============================] - 39s 286ms/step - loss: 0.0586 - accuracy: 0.9805 - val_loss: 0.4751 - val_accuracy: 0.8860 - lr: 0.0010
         Epoch 15/20
-        135/135 [==============================] - 35s 256ms/step - loss: 0.0039 - accuracy: 0.9995 - val_loss: 0.4217 - val_accuracy: 0.9105 - lr: 1.0000e-05
+        135/135 [==============================] - 35s 261ms/step - loss: 0.0291 - accuracy: 0.9907 - val_loss: 0.3191 - val_accuracy: 0.9203 - lr: 1.0000e-04
         Epoch 16/20
-        135/135 [==============================] - 38s 280ms/step - loss: 0.0041 - accuracy: 0.9995 - val_loss: 0.4243 - val_accuracy: 0.9098 - lr: 1.0000e-05
+        135/135 [==============================] - 36s 266ms/step - loss: 0.0159 - accuracy: 0.9965 - val_loss: 0.3221 - val_accuracy: 0.9252 - lr: 1.0000e-04
         Epoch 17/20
-        135/135 [==============================] - 36s 264ms/step - loss: 0.0045 - accuracy: 0.9991 - val_loss: 0.4272 - val_accuracy: 0.9126 - lr: 1.0000e-05
+        135/135 [==============================] - 35s 263ms/step - loss: 0.0122 - accuracy: 0.9974 - val_loss: 0.3406 - val_accuracy: 0.9245 - lr: 1.0000e-04
         Epoch 18/20
-        135/135 [==============================] - 38s 278ms/step - loss: 0.0040 - accuracy: 0.9998 - val_loss: 0.4294 - val_accuracy: 0.9112 - lr: 1.0000e-05
+        135/135 [==============================] - 37s 274ms/step - loss: 0.0105 - accuracy: 0.9977 - val_loss: 0.3387 - val_accuracy: 0.9245 - lr: 1.0000e-04
         Epoch 19/20
-        135/135 [==============================] - 37s 276ms/step - loss: 0.0040 - accuracy: 0.9995 - val_loss: 0.4295 - val_accuracy: 0.9112 - lr: 1.0000e-06
+        135/135 [==============================] - 36s 267ms/step - loss: 0.0100 - accuracy: 0.9977 - val_loss: 0.3501 - val_accuracy: 0.9266 - lr: 1.0000e-04
         Epoch 20/20
-        135/135 [==============================] - 36s 267ms/step - loss: 0.0038 - accuracy: 0.9993 - val_loss: 0.4298 - val_accuracy: 0.9112 - lr: 1.0000e-06
+        135/135 [==============================] - 38s 282ms/step - loss: 0.0085 - accuracy: 0.9988 - val_loss: 0.3444 - val_accuracy: 0.9280 - lr: 1.0000e-05
     """
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(image_size, image_size, 3)))
@@ -458,6 +458,60 @@ def Cnn8():
 
     reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5)
     checkpoint = ModelCheckpoint(filepath=dataset_path + '/modello_cnn_exp8.h5', monitor='val_loss', save_best_only=True)
+
+    callbacks_list = [reduce_lr, checkpoint]
+    history = model.fit(train_generator, epochs=10, validation_data=val_generator, callbacks=callbacks_list)
+
+    return model
+
+def Cnn9():
+    """
+        Ninth CNN model with 3 convolutional layers and 3 max pooling layer at the biginning.
+        Now each of the max pooling layer have a different pool size.
+        Than one flatten layer and one dense layer with 512 units and softmax activation function.
+        Than one other dense layer with 256 units and softmax activation function.
+        We add a dropout layer with 0.5 probability to avoid overfitting.
+        At the end we add a dense layer with 4 units (one for each class) and softmax activation function.
+
+        Epoch 1/10
+        135/135 [==============================] - 1236s 9s/step - loss: 1.1976 - accuracy: 0.4509 - val_loss: 0.9390 - val_accuracy: 0.5993 - lr: 0.0010
+        Epoch 2/10
+        135/135 [==============================] - 643s 5s/step - loss: 0.8026 - accuracy: 0.6614 - val_loss: 0.7533 - val_accuracy: 0.6902 - lr: 0.0010
+        Epoch 3/10
+        135/135 [==============================] - 623s 5s/step - loss: 0.5953 - accuracy: 0.7616 - val_loss: 0.6794 - val_accuracy: 0.7189 - lr: 0.0010
+        Epoch 4/10
+        135/135 [==============================] - 600s 4s/step - loss: 0.4315 - accuracy: 0.8328 - val_loss: 0.5617 - val_accuracy: 0.7874 - lr: 0.0010
+        Epoch 5/10
+        135/135 [==============================] - 598s 4s/step - loss: 0.3135 - accuracy: 0.8821 - val_loss: 0.4589 - val_accuracy: 0.8441 - lr: 0.0010
+        Epoch 6/10
+        135/135 [==============================] - 621s 5s/step - loss: 0.2089 - accuracy: 0.9195 - val_loss: 0.5300 - val_accuracy: 0.8266 - lr: 0.0010
+        Epoch 7/10
+        135/135 [==============================] - 621s 5s/step - loss: 0.1668 - accuracy: 0.9435 - val_loss: 0.4736 - val_accuracy: 0.8622 - lr: 0.0010
+        Epoch 8/10
+        135/135 [==============================] - 596s 4s/step - loss: 0.0994 - accuracy: 0.9656 - val_loss: 0.5976 - val_accuracy: 0.8664 - lr: 0.0010
+        Epoch 9/10
+        135/135 [==============================] - 616s 5s/step - loss: 0.0673 - accuracy: 0.9770 - val_loss: 0.4948 - val_accuracy: 0.8734 - lr: 0.0010
+        Epoch 10/10
+        135/135 [==============================] - 601s 4s/step - loss: 0.0748 - accuracy: 0.9730 - val_loss: 0.5548 - val_accuracy: 0.8685 - lr: 0.0010
+    """
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(image_size, image_size, 3)))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((3, 3)))
+    model.add(Conv2D(128, (3, 3), activation='relu', padding='same'))
+    model.add(MaxPooling2D((4, 4)))
+    model.add(Flatten())
+    model.add(Dense(512, activation='relu'))
+    model.add(Dense(256, activation='relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(4, activation='softmax'))
+    model.summary()
+
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', patience=5)
+    checkpoint = ModelCheckpoint(filepath=dataset_path + '/modello_cnn_exp9.h5', monitor='val_loss', save_best_only=True)
 
     callbacks_list = [reduce_lr, checkpoint]
     history = model.fit(train_generator, epochs=10, validation_data=val_generator, callbacks=callbacks_list)
