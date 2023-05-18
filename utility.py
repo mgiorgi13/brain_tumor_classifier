@@ -15,13 +15,7 @@ base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
 test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
 val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
 train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
-
 models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
-cnn_results_path = os.path.join(results_path, 'CNN')
-vgg16_results_path = os.path.join(results_path, 'VGG16')
-resnet50_results_path = os.path.join(results_path, 'ResNet50')
-inceptionv3_results_path = os.path.join(results_path, 'InceptionV3')
-actual_results_path = vgg16_results_path
 
 def set_seed ():
 	''' 
