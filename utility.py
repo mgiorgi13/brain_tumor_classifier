@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
@@ -181,5 +182,9 @@ def evaluate_model (model, test_dataset):
 	# create and show confusion matrix and roc
 	metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
 	plot_roc_curve(y_true, y_score, 4, class_labels)
+
+def clear(model):
+	del model
+	K.clear_session() 
 
 set_seed ()
