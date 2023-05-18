@@ -16,7 +16,7 @@ test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
 val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
 train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
 
-results_path = "/content/drive/MyDrive/BrainTumorDataset/Results"
+models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
 cnn_results_path = os.path.join(results_path, 'CNN')
 vgg16_results_path = os.path.join(results_path, 'VGG16')
 resnet50_results_path = os.path.join(results_path, 'ResNet50')
@@ -38,7 +38,7 @@ def set_seed ():
 	tf.random.set_seed(seed)     
 
 # Definisci le dimensioni delle immagini
-image_size = 250
+image_size = 224
 batch_size = 32
 
 # Crea un oggetto ImageDataGenerator per il preprocessing delle immagini
@@ -125,7 +125,7 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 	:param monitor: what to monitor for Early Stopping and Model Checkpoint
 	'''
 	# local save path for the models
-	save_path = dataset_path + '/' + model_name + '.h5'
+	save_path = os.path.join(models_path, model_name + '.h5') 
 	callbacks_list = [
 					keras.callbacks.EarlyStopping(monitor=monitor, patience=patience),
 					keras.callbacks.ModelCheckpoint(
@@ -139,7 +139,7 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 						validation_data=val_generator,
 						callbacks=callbacks_list)
 	# save on Drive only the best model
-	show_training_and_validation_performance(history,os.path.join(actual_results_path, model_name + '_validation.png'))
+	show_training_and_validation_performance(history,os.path.join(models_path, model_name + '_validation.png'))
 
 def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
 
@@ -169,10 +169,10 @@ def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
     plt.ylabel('True Positive Rate')
     plt.title('ROC curve')
     plt.legend(loc="lower right")
-    plt.savefig(os.path.join(actual_results_path, model_name + '_ROC.png'))
+    plt.savefig(os.path.join(models_path, model_name + '_ROC.png'))
     plt.show()
 
-def evaluate_model (model, test_dataset):
+def evaluate_model (model):
 	'''
 	evaluate_model is used to plot some statistics about the performance on the test set
 	:param model: model to consider
@@ -192,14 +192,14 @@ def evaluate_model (model, test_dataset):
 	# create and show classification report
 	print(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
 	# save classification report
-	with open(os.path.join(actual_results_path, model_name + '_classification_report.txt'), 'w') as f:
+	with open(os.path.join(models_path, model_name + '_classification_report.txt'), 'w') as f:
 		f.write(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
 	# create and show confusion matrix and roc
 	#metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
 
 	#save and plot confusion matrix
 	ConfusionMatrixDisplay(cm, display_labels=class_labels, xticks_rotation='vertical').plot()
-	plt.savefig(os.path.join(actual_results_path, model_name + '_confusion_matrix.png'))
+	plt.savefig(os.path.join(models_path, model_name + '_confusion_matrix.png'))
 	plt.show()
 
 	plot_roc_curve(y_true, y_score, 4, class_labels)
