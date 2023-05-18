@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
@@ -181,3 +182,20 @@ def evaluate_model (model, test_dataset):
 	# create and show confusion matrix and roc
 	metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
 	plot_roc_curve(y_true, y_score, 4, class_labels)
+
+def get_index_by_layer_name(model, layer_name):
+  '''
+  get_index_by_layer_name is used to retrieve the index of a specific layer
+  :param model: model to check
+  :param layer_name: name of the layer we want to get the index of
+  :return: the index of the layer named as defined in layer_name
+  '''
+  for index, layer in enumerate(model.layers):
+      if layer.name == layer_name:
+          return index 
+
+def clear(model):
+	del model
+	K.clear_session() 
+
+set_seed ()
