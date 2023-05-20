@@ -1,21 +1,32 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 
 from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
-dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
+# dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
+
+# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
+# base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
+
+# # Definisci i percorsi per il set di test, di validazione e di addestramento
+# test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
+# val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
+# train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
+
+dataset_path = "BrainTumorDataset"
 
 # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
+base_path = "BrainTumorDataset/Preprocessed/Unified"
 
 # Definisci i percorsi per il set di test, di validazione e di addestramento
-test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
-val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
-train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
-models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
+test_path = "BrainTumorDataset/Preprocessed/Test"
+val_path = "BrainTumorDataset/Preprocessed/Validation"
+train_path = "BrainTumorDataset/Preprocessed/Train"
+
+#dict of labels
+labels_dict= {0:'glioma_tumor', 1:'meningioma_tumor', 2:'no_tumor', 3:'pituitary_tumor'}
 
 def set_seed ():
 	''' 
@@ -32,8 +43,11 @@ def set_seed ():
 	tf.random.set_seed(seed)     
 
 # Definisci le dimensioni delle immagini
-image_size = 224
+image_size = 250
 batch_size = 32
+# number of image per row in layer activation visualization
+images_per_row = 16
+
 
 # Crea un oggetto ImageDataGenerator per il preprocessing delle immagini
 data_generator = ImageDataGenerator(rescale=1.0/255.0)
@@ -64,7 +78,7 @@ val_generator = data_generator.flow_from_directory(
 )
      
 
-def show_training_and_validation_performance(history,path):
+def show_training_and_validation_performance(history):
 	'''
 	show_training_and_validation_performance is used to plot the performances during the training phase
 	:param history: object in which are recorded all the events
@@ -87,8 +101,6 @@ def show_training_and_validation_performance(history,path):
 	plt.plot(epochs, val_loss, 'b', label='Validation loss')
 	plt.title('Training and validation loss')
 	plt.legend()
-
-	plt.savefig(path)
 
 	plt.show()
 
@@ -119,7 +131,7 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 	:param monitor: what to monitor for Early Stopping and Model Checkpoint
 	'''
 	# local save path for the models
-	save_path = os.path.join(models_path, model_name + '.h5') 
+	save_path = dataset_path + '/' + model_name + '.h5'
 	callbacks_list = [
 					keras.callbacks.EarlyStopping(monitor=monitor, patience=patience),
 					keras.callbacks.ModelCheckpoint(
@@ -133,7 +145,7 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 						validation_data=val_generator,
 						callbacks=callbacks_list)
 	# save on Drive only the best model
-	show_training_and_validation_performance(history,os.path.join(models_path, model_name + '_validation.png'))
+	show_training_and_validation_performance(history)
 
 def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
 
@@ -163,15 +175,13 @@ def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
     plt.ylabel('True Positive Rate')
     plt.title('ROC curve')
     plt.legend(loc="lower right")
-    plt.savefig(os.path.join(models_path, model_name + '_ROC.png'))
     plt.show()
 
-def evaluate_model (model):
+def evaluate_model (model, test_dataset):
 	'''
 	evaluate_model is used to plot some statistics about the performance on the test set
 	:param model: model to consider
 	'''
-	labels_d= ['glioma_tumor', 'meningioma_tumor', 'no_tumor', 'pituitary_tumor']
 
 	# get predictions
 	y_score = model.predict(test_generator)
@@ -183,31 +193,137 @@ def evaluate_model (model):
 	class_labels = list(test_generator.class_indices.keys())
 	
 	print("Classification report: ")
-	# create and show classification report
 	print(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
-	# save classification report
-	with open(os.path.join(models_path, model_name + '_classification_report.txt'), 'w') as f:
-		f.write(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
 	# create and show confusion matrix and roc
-	#metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
-
-	#save and plot confusion matrix
-	ConfusionMatrixDisplay(cm, display_labels=class_labels, xticks_rotation='vertical').plot()
-	plt.savefig(os.path.join(models_path, model_name + '_confusion_matrix.png'))
-	plt.show()
-
+	metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
 	plot_roc_curve(y_true, y_score, 4, class_labels)
 
-def get_index_by_layer_name(model, layer_name):
-  '''
-  get_index_by_layer_name is used to retrieve the index of a specific layer
-  :param model: model to check
-  :param layer_name: name of the layer we want to get the index of
-  :return: the index of the layer named as defined in layer_name
-  '''
-  for index, layer in enumerate(model.layers):
-      if layer.name == layer_name:
-          return index 
+def display_feature_map(layer_names,activations):
+	# Now let's display our feature maps
+	for layer_name, layer_activation in zip(layer_names, activations):
+			# This is the number of features in the feature map
+			n_features = layer_activation.shape[-1]
+
+			# The feature map has shape (1, size, size, n_features)
+			size = layer_activation.shape[1]
+
+			# We will tile the activation channels in this matrix
+			n_cols = n_features // images_per_row
+			display_grid = np.zeros((size * n_cols, images_per_row * size))
+
+			# We'll tile each filter into this big horizontal grid
+			for col in range(n_cols):
+					for row in range(images_per_row):
+							channel_image = layer_activation[0,:, :, col * images_per_row + row]
+							# Post-process the feature to make it visually palatable
+							channel_image -= channel_image.mean()
+							channel_image /= channel_image.std()
+							channel_image *= 64
+							channel_image += 128
+							channel_image = np.clip(channel_image, 0, 255).astype('uint8')
+							display_grid[col * size : (col + 1) * size, row * size : (row + 1) * size] = channel_image
+
+			# Display the grid
+			scale = 1. / size
+			plt.figure(figsize=(scale * display_grid.shape[1],
+													scale * display_grid.shape[0]))
+			plt.title(layer_name)
+			plt.grid(False)
+			plt.imshow(display_grid, aspect='auto', cmap='gray')
+			
+	plt.show()
+
+def get_img(img_path, target_size=(224,224)):
+    img = image.load_img(img_path, target_size=target_size)
+    array = image.img_to_array(img)
+    array = np.expand_dims(array, axis=0)
+    return array
+
+def get_img_for_pred(img_path, target_size=(224,224)):
+	img = tf.keras.preprocessing.image.load_img(img_path, target_size=target_size)
+	img_tensor = tf.keras.preprocessing.image.img_to_array(img)  # (height, width, channels)
+	img_tensor = np.expand_dims(img_tensor, axis=0) 
+	img_tensor /= 255.
+	return img_tensor
+
+def decode_predictions(model,pred):
+	class_indices = np.argsort(pred)[0, ::-1][:4]  # Ottieni gli indici delle probabilità ordinate in modo decrescente per le prime 4 classi
+	class_probabilities = pred[0, class_indices]  # Probabilità corrispondenti alle classi selezionate
+	class_labels = [labels_dict[i] for i in class_indices]  # Etichette corrispondenti alle classi selezionate
+
+	for label, probability in zip(class_labels, class_probabilities):
+		print(f"{label}: {probability*100:.2f}%")
+
+def get_last_conv_layer(model):
+	conv_layer_names = []
+	last_conv_layer = None
+	for layer in model.layers[::-1]:
+		if isinstance(layer, keras.layers.Conv2D):
+			last_conv_layer = layer
+			break
+		else:
+			conv_layer_names.append(layer.name)
+	conv_layer_names = conv_layer_names[::-1]
+	return last_conv_layer, conv_layer_names
+
+def create_heatmap(img_array,img_tensor,last_conv_layer_model,classifier_model):
+	#compute gradient for input image respect to the activations of the last convolution layer
+	with tf.GradientTape() as tape:
+		last_conv_layer_output = last_conv_layer_model(img_tensor) # output feature maps of the last conv layer.
+		tape.watch(last_conv_layer_output)
+		preds = classifier_model(last_conv_layer_output)  
+		top_pred_index = tf.argmax(preds[0])  #  meningioma_tumor prediction index
+		top_class_channel = preds[:, top_pred_index] # meningioma_tumor prediction value
+	#Gradient of the meningioma_tumor class with related to the output feature maps of last conv layer
+	grads = tape.gradient(top_class_channel, last_conv_layer_output) 
+	#Apply pooling and importance weighting to the gradient tensor to obtain heatmap of class activation
+	pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2)).numpy() # evaluate the mean over the gradient tensor, for each channel separately
+	
+	weighted_last_conv_layer_output = last_conv_layer_output.numpy()[0]
+	for i in range(pooled_grads.shape[-1]):
+		weighted_last_conv_layer_output[:, :, i] *= pooled_grads[i]
+	
+	heatmap = np.mean(weighted_last_conv_layer_output, axis=-1)
+	heatmap = np.maximum(heatmap, 0)
+	heatmap /= np.max(heatmap)
+
+	# Crea una figura e una griglia di subplot 1x2
+	fig, axs = plt.subplots(1, 2)
+
+	# Stampa l'immagine 'heatmap' nel subplot sinistro
+	axs[0].matshow(heatmap)
+
+	# Stampa l'immagine 'img_tensor' nel subplot destro
+	axs[1].imshow(img_array[0].astype('uint8'))
+
+	# Rimuovi gli assi (opzionale)
+	axs[0].axis('off')
+	axs[1].axis('off')
+
+	# Mostra la figura
+	plt.show()
+	return heatmap
+
+def superimposed_img(img_path,heatmap,save_path):
+    img = keras.utils.load_img(img_path)
+    img = keras.utils.img_to_array(img)
+
+    heatmap = np.uint8(255 * heatmap)
+
+    jet = cm.get_cmap("jet")
+    jet_colors = jet(np.arange(256))[:, :3]
+    jet_heatmap = jet_colors[heatmap]
+
+    jet_heatmap = keras.utils.array_to_img(jet_heatmap)
+    jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
+    jet_heatmap = keras.utils.img_to_array(jet_heatmap)
+
+    superimposed_img = jet_heatmap * 0.4 + img
+    superimposed_img = keras.utils.array_to_img(superimposed_img)
+
+    superimposed_img.save(save_path)
+    plt.figure(figsize= (10,10))
+    plt.imshow(superimposed_img)    
 
 def clear(model):
 	del model
