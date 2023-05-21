@@ -6,35 +6,33 @@ from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
-# dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
-
-# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-# base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
-
-# # Definisci i percorsi per il set di test, di validazione e di addestramento
-# test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
-# val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
-# train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
-
-dataset_path = "BrainTumorDataset"
+# su colab
+dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
 
 # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-base_path = "BrainTumorDataset/Preprocessed/Unified"
+base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
 
 # Definisci i percorsi per il set di test, di validazione e di addestramento
-test_path = "BrainTumorDataset/Preprocessed/Test"
-val_path = "BrainTumorDataset/Preprocessed/Validation"
-train_path = "BrainTumorDataset/Preprocessed/Train"
+test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
+val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
+train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
+
+# per locale
+# dataset_path = "BrainTumorDataset"
+
+# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
+# base_path = "BrainTumorDataset/Preprocessed/Unified"
+
+# # Definisci i percorsi per il set di test, di validazione e di addestramento
+# test_path = "BrainTumorDataset/Preprocessed/Test"
+# val_path = "BrainTumorDataset/Preprocessed/Validation"
+# train_path = "BrainTumorDataset/Preprocessed/Train"
 
 models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
-cnn_results_path = os.path.join(results_path, 'CNN')
-vgg16_results_path = os.path.join(results_path, 'VGG16')
-resnet50_results_path = os.path.join(results_path, 'ResNet50')
-inceptionv3_results_path = os.path.join(results_path, 'InceptionV3')
-actual_results_path = vgg16_results_path
-
-#dict of labels
-labels_dict= {0:'glioma_tumor', 1:'meningioma_tumor', 2:'no_tumor', 3:'pituitary_tumor'}
+cnn_results_path = os.path.join(models_path, 'CNN')
+vgg16_results_path = os.path.join(models_path, 'VGG16')
+resnet50_results_path = os.path.join(models_path, 'ResNet50')
+inceptionv3_results_path = os.path.join(models_path, 'InceptionV3')
 
 def set_seed ():
 	''' 
@@ -53,9 +51,6 @@ def set_seed ():
 # Definisci le dimensioni delle immagini
 image_size = 224
 batch_size = 32
-# number of image per row in layer activation visualization
-images_per_row = 16
-
 
 # Crea un oggetto ImageDataGenerator per il preprocessing delle immagini
 data_generator = ImageDataGenerator(rescale=1.0/255.0)
@@ -131,17 +126,18 @@ def compile_model (model, optimizer='adam', learning_rate = 0.001):
 					metrics=['accuracy'])
 	model.summary()
 
-def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
+def run_model (model, type, model_name, epochs = 100, patience=5, monitor='val_loss'):
 	'''
 	run_model is used to run the current mode
 	:param model: model to run
 	:param model_name: name given to save the model
+	:param type: type of model, CNN, VGG16, ResNet50, InceptionV3
 	:param epochs: how many epochs to do
 	:param patience: patience value for Early Stopping
 	:param monitor: what to monitor for Early Stopping and Model Checkpoint
 	'''
 	# local save path for the models
-	save_path = os.path.join(models_path, model_name + '.h5') 
+	save_path = os.path.join(models_path, type + '/' + model_name + '.h5') 
 	callbacks_list = [
 					keras.callbacks.EarlyStopping(monitor=monitor, patience=patience),
 					keras.callbacks.ModelCheckpoint(
@@ -155,9 +151,9 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 						validation_data=val_generator,
 						callbacks=callbacks_list)
 	# save on Drive only the best model
-	show_training_and_validation_performance(history,os.path.join(models_path, model_name + '_validation.png'))
+	show_training_and_validation_performance(history,os.path.join(models_path, type + '/' + model_name + '_validation.png'))
 
-def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
+def plot_roc_curve(y_true, y_pred, n_classes, class_labels, model_name, type):
 
     # Converti le etichette di classe in formato binario
     lb = LabelBinarizer()
@@ -185,14 +181,15 @@ def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
     plt.ylabel('True Positive Rate')
     plt.title('ROC curve')
     plt.legend(loc="lower right")
-    plt.savefig(os.path.join(models_path, model_name + '_ROC.png'))
+    plt.savefig(os.path.join(models_path, type + '/' + model_name + '_ROC.png'))
     plt.show()
 
-def evaluate_model (model):
+def evaluate_model (model, test_generator, model_name, type):
 	'''
 	evaluate_model is used to plot some statistics about the performance on the test set
 	:param model: model to consider
 	'''
+	labels_d= ['glioma_tumor', 'meningioma_tumor', 'no_tumor', 'pituitary_tumor']
 
 	# get predictions
 	y_score = model.predict(test_generator)
@@ -207,17 +204,19 @@ def evaluate_model (model):
 	# create and show classification report
 	print(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
 	# save classification report
-	with open(os.path.join(models_path, model_name + '_classification_report.txt'), 'w') as f:
+	with open(os.path.join(models_path, type + '/' + model_name + '_classification_report.txt'), 'w') as f:
 		f.write(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
-	# create and show confusion matrix and roc
-	#metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
 
-	#save and plot confusion matrix
-	ConfusionMatrixDisplay(cm, display_labels=class_labels, xticks_rotation='vertical').plot()
-	plt.savefig(os.path.join(models_path, model_name + '_confusion_matrix.png'))
+	# create and show confusion matrix	
+	cm = confusion_matrix(y_true, y_pred)	
+	disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_labels)
+	disp.plot(xticks_rotation=45)
+	
+	# save confusion matrix
+	plt.savefig(os.path.join(models_path, type, model_name + '_confusion_matrix.png'), bbox_inches='tight', pad_inches=0.1)
 	plt.show()
 
-	plot_roc_curve(y_true, y_score, 4, class_labels)
+	plot_roc_curve(y_true, y_score, 4, class_labels, model_name, type)
 
 def display_feature_map(layer_names,activations):
 	# Now let's display our feature maps
