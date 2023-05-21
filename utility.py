@@ -177,7 +177,7 @@ def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
     plt.legend(loc="lower right")
     plt.show()
 
-def evaluate_model (model, test_dataset):
+def evaluate_model (model):
 	'''
 	evaluate_model is used to plot some statistics about the performance on the test set
 	:param model: model to consider
@@ -246,7 +246,7 @@ def get_img_for_pred(img_path, target_size=(224,224)):
 	img_tensor /= 255.
 	return img_tensor
 
-def decode_predictions(model,pred):
+def decode_predictions(pred):
 	class_indices = np.argsort(pred)[0, ::-1][:4]  # Ottieni gli indici delle probabilità ordinate in modo decrescente per le prime 4 classi
 	class_probabilities = pred[0, class_indices]  # Probabilità corrispondenti alle classi selezionate
 	class_labels = [labels_dict[i] for i in class_indices]  # Etichette corrispondenti alle classi selezionate
