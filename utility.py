@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from tensorflow.keras import backend as K
 from itertools import cycle
@@ -25,6 +26,13 @@ test_path = "BrainTumorDataset/Preprocessed/Test"
 val_path = "BrainTumorDataset/Preprocessed/Validation"
 train_path = "BrainTumorDataset/Preprocessed/Train"
 
+models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
+cnn_results_path = os.path.join(results_path, 'CNN')
+vgg16_results_path = os.path.join(results_path, 'VGG16')
+resnet50_results_path = os.path.join(results_path, 'ResNet50')
+inceptionv3_results_path = os.path.join(results_path, 'InceptionV3')
+actual_results_path = vgg16_results_path
+
 #dict of labels
 labels_dict= {0:'glioma_tumor', 1:'meningioma_tumor', 2:'no_tumor', 3:'pituitary_tumor'}
 
@@ -43,7 +51,7 @@ def set_seed ():
 	tf.random.set_seed(seed)     
 
 # Definisci le dimensioni delle immagini
-image_size = 250
+image_size = 224
 batch_size = 32
 # number of image per row in layer activation visualization
 images_per_row = 16
@@ -78,7 +86,7 @@ val_generator = data_generator.flow_from_directory(
 )
      
 
-def show_training_and_validation_performance(history):
+def show_training_and_validation_performance(history,path):
 	'''
 	show_training_and_validation_performance is used to plot the performances during the training phase
 	:param history: object in which are recorded all the events
@@ -101,6 +109,8 @@ def show_training_and_validation_performance(history):
 	plt.plot(epochs, val_loss, 'b', label='Validation loss')
 	plt.title('Training and validation loss')
 	plt.legend()
+
+	plt.savefig(path)
 
 	plt.show()
 
@@ -131,7 +141,7 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 	:param monitor: what to monitor for Early Stopping and Model Checkpoint
 	'''
 	# local save path for the models
-	save_path = dataset_path + '/' + model_name + '.h5'
+	save_path = os.path.join(models_path, model_name + '.h5') 
 	callbacks_list = [
 					keras.callbacks.EarlyStopping(monitor=monitor, patience=patience),
 					keras.callbacks.ModelCheckpoint(
@@ -145,7 +155,7 @@ def run_model (model, model_name, epochs = 100, patience=5, monitor='val_loss'):
 						validation_data=val_generator,
 						callbacks=callbacks_list)
 	# save on Drive only the best model
-	show_training_and_validation_performance(history)
+	show_training_and_validation_performance(history,os.path.join(models_path, model_name + '_validation.png'))
 
 def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
 
@@ -175,6 +185,7 @@ def plot_roc_curve(y_true, y_pred, n_classes, class_labels):
     plt.ylabel('True Positive Rate')
     plt.title('ROC curve')
     plt.legend(loc="lower right")
+    plt.savefig(os.path.join(models_path, model_name + '_ROC.png'))
     plt.show()
 
 def evaluate_model (model):
@@ -193,9 +204,19 @@ def evaluate_model (model):
 	class_labels = list(test_generator.class_indices.keys())
 	
 	print("Classification report: ")
+	# create and show classification report
 	print(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
+	# save classification report
+	with open(os.path.join(models_path, model_name + '_classification_report.txt'), 'w') as f:
+		f.write(metrics.classification_report(y_true, y_pred, target_names=class_labels,digits = 4))
 	# create and show confusion matrix and roc
-	metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
+	#metrics.ConfusionMatrixDisplay.from_predictions(y_true, y_pred,display_labels=class_labels, xticks_rotation='vertical')
+
+	#save and plot confusion matrix
+	ConfusionMatrixDisplay(cm, display_labels=class_labels, xticks_rotation='vertical').plot()
+	plt.savefig(os.path.join(models_path, model_name + '_confusion_matrix.png'))
+	plt.show()
+
 	plot_roc_curve(y_true, y_score, 4, class_labels)
 
 def display_feature_map(layer_names,activations):
