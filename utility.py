@@ -6,33 +6,36 @@ from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
-# su colab
-dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
-
-# Percorso della cartella "unified" che contiene le sottocartelle delle classi
-base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
-
-# Definisci i percorsi per il set di test, di validazione e di addestramento
-test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
-val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
-train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
-
-# per locale
-# dataset_path = "BrainTumorDataset"
+# # su colab
+# dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
 
 # # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-# base_path = "BrainTumorDataset/Preprocessed/Unified"
+# base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
 
 # # Definisci i percorsi per il set di test, di validazione e di addestramento
-# test_path = "BrainTumorDataset/Preprocessed/Test"
-# val_path = "BrainTumorDataset/Preprocessed/Validation"
-# train_path = "BrainTumorDataset/Preprocessed/Train"
+# test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
+# val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
+# train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
+
+# per locale
+dataset_path = "BrainTumorDataset"
+
+# Percorso della cartella "unified" che contiene le sottocartelle delle classi
+base_path = "BrainTumorDataset/Preprocessed/Unified"
+
+# Definisci i percorsi per il set di test, di validazione e di addestramento
+test_path = "BrainTumorDataset/Preprocessed/Test"
+val_path = "BrainTumorDataset/Preprocessed/Validation"
+train_path = "BrainTumorDataset/Preprocessed/Train"
 
 models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
 cnn_results_path = os.path.join(models_path, 'CNN')
 vgg16_results_path = os.path.join(models_path, 'VGG16')
 resnet50_results_path = os.path.join(models_path, 'ResNet50')
 inceptionv3_results_path = os.path.join(models_path, 'InceptionV3')
+
+#dict of labels
+labels_dict= {0:'glioma_tumor', 1:'meningioma_tumor', 2:'no_tumor', 3:'pituitary_tumor'}
 
 def set_seed ():
 	''' 
@@ -49,7 +52,7 @@ def set_seed ():
 	tf.random.set_seed(seed)     
 
 # Definisci le dimensioni delle immagini
-image_size = 224
+image_size = 250
 batch_size = 32
 
 # Crea un oggetto ImageDataGenerator per il preprocessing delle immagini
@@ -286,7 +289,27 @@ def get_last_conv_layer(model):
 	conv_layer_names = conv_layer_names[::-1]
 	return last_conv_layer, conv_layer_names
 
-def create_heatmap(img_array,img_tensor,last_conv_layer_model,classifier_model):
+def GradCAM_process(model, img_path, target_size=(224,224)):
+	#import image and make prediction on the given model
+	img_tensor = get_img_for_pred(img_path, target_size=target_size)
+	preds = model.predict(img_tensor)
+	decode_predictions(preds)
+
+	#get last conv layer and list of dense part 
+	last_conv_layer, classifier_layer_names = get_last_conv_layer(model)
+	#create a model that map input to the last conv layer
+	last_conv_layer_model = keras.Model(model.inputs, last_conv_layer.output)
+	classifier_input = keras.Input(shape=last_conv_layer.output.shape[1:])
+	
+	x = classifier_input
+	for layer_name in classifier_layer_names:
+		x = model.get_layer(layer_name)(x)
+	classifier_model = keras.Model(classifier_input, x)
+	#classifier_model is composed by last conv layer + le dense part of the network
+
+	return img_tensor, last_conv_layer_model, classifier_model
+
+def create_heatmap(img_tensor,last_conv_layer_model,classifier_model):
 	#compute gradient for input image respect to the activations of the last convolution layer
 	with tf.GradientTape() as tape:
 		last_conv_layer_output = last_conv_layer_model(img_tensor) # output feature maps of the last conv layer.
@@ -302,48 +325,57 @@ def create_heatmap(img_array,img_tensor,last_conv_layer_model,classifier_model):
 	weighted_last_conv_layer_output = last_conv_layer_output.numpy()[0]
 	for i in range(pooled_grads.shape[-1]):
 		weighted_last_conv_layer_output[:, :, i] *= pooled_grads[i]
-	
+
 	heatmap = np.mean(weighted_last_conv_layer_output, axis=-1)
 	heatmap = np.maximum(heatmap, 0)
 	heatmap /= np.max(heatmap)
 
-	# Crea una figura e una griglia di subplot 1x2
-	fig, axs = plt.subplots(1, 2)
-
-	# Stampa l'immagine 'heatmap' nel subplot sinistro
-	axs[0].matshow(heatmap)
-
-	# Stampa l'immagine 'img_tensor' nel subplot destro
-	axs[1].imshow(img_array[0].astype('uint8'))
-
-	# Rimuovi gli assi (opzionale)
-	axs[0].axis('off')
-	axs[1].axis('off')
-
-	# Mostra la figura
-	plt.show()
 	return heatmap
 
-def superimposed_img(img_path,heatmap,save_path):
-    img = keras.utils.load_img(img_path)
-    img = keras.utils.img_to_array(img)
+def superimposed_img(img_path, heatmaps, save_path):
+	models = ['CNN', 'VGG16', 'ResNet50', 'InceptionV3']
+	img = keras.utils.load_img(img_path)
+	img = keras.utils.img_to_array(img)
 
-    heatmap = np.uint8(255 * heatmap)
+	fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+	fig.suptitle('Superimposed Images', fontsize=16)
 
-    jet = cm.get_cmap("jet")
-    jet_colors = jet(np.arange(256))[:, :3]
-    jet_heatmap = jet_colors[heatmap]
+	for i, ax in enumerate(axes.flat):
+		heatmap = heatmaps[i]
+		heatmap = np.uint8(255 * heatmap)
 
-    jet_heatmap = keras.utils.array_to_img(jet_heatmap)
-    jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
-    jet_heatmap = keras.utils.img_to_array(jet_heatmap)
+		jet = cm.get_cmap("jet")
+		jet_colors = jet(np.arange(256))[:, :3]
+		jet_heatmap = jet_colors[heatmap]
 
-    superimposed_img = jet_heatmap * 0.4 + img
-    superimposed_img = keras.utils.array_to_img(superimposed_img)
+		jet_heatmap = keras.utils.array_to_img(jet_heatmap)
+		jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
+		jet_heatmap = keras.utils.img_to_array(jet_heatmap)
 
-    superimposed_img.save(save_path)
-    plt.figure(figsize= (10,10))
-    plt.imshow(superimposed_img)    
+		superimposed_img = jet_heatmap * 0.8 + img
+		superimposed_img = keras.utils.array_to_img(superimposed_img)
+
+		ax.imshow(superimposed_img)
+		ax.set_title(models[i])
+		ax.axis('off')
+
+	plt.tight_layout()
+	plt.savefig(save_path)
+	plt.show()
+
+def plot_heatmaps(heatmaps):
+    models = ['CNN', 'VGG16', 'ResNet50', 'InceptionV3']
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    fig.suptitle('Models Heatmap', fontsize=16)
+
+    for i, ax in enumerate(axes.flat):
+        ax.imshow(heatmaps[i])
+        ax.set_title(models[i])
+        ax.axis('off')
+
+    plt.tight_layout()
+    plt.show()
 
 def clear(model):
 	del model
