@@ -54,6 +54,7 @@ def set_seed ():
 # Definisci le dimensioni delle immagini
 image_size = 250
 batch_size = 32
+images_per_row = 16
 
 # Crea un oggetto ImageDataGenerator per il preprocessing delle immagini
 data_generator = ImageDataGenerator(rescale=1.0/255.0)
@@ -278,35 +279,59 @@ def decode_predictions(pred):
 		print(f"{label}: {probability*100:.2f}%")
 
 def get_last_conv_layer(model):
-	conv_layer_names = []
+	class_layer_names = []
 	last_conv_layer = None
 	for layer in model.layers[::-1]:
 		if isinstance(layer, keras.layers.Conv2D):
 			last_conv_layer = layer
 			break
 		else:
-			conv_layer_names.append(layer.name)
-	conv_layer_names = conv_layer_names[::-1]
-	return last_conv_layer, conv_layer_names
+			class_layer_names.append(layer.name)
+	class_layer_names = class_layer_names[::-1]
+	if last_conv_layer is None:
+		# if no conv layer is found then the model is not a CNN from scratch
+		# so remove from list the functional layer (which is the pretrained model)
+		class_layer_names.pop(0)
+	return last_conv_layer, class_layer_names
 
-def GradCAM_process(model, img_path, target_size=(224,224)):
-	#import image and make prediction on the given model
+def GradCAM_process(model, img_path, target_size=(224,224), type='CNN'):
+	# import image and make prediction on the given model
 	img_tensor = get_img_for_pred(img_path, target_size=target_size)
 	preds = model.predict(img_tensor)
 	decode_predictions(preds)
 
-	#get last conv layer and list of dense part 
+	#get last conv layer and list of dense part of the loaded model
 	last_conv_layer, classifier_layer_names = get_last_conv_layer(model)
+	#get last conv layer and list of dense part of the pretrained model
+	conv_layer_names = []
+	if(type == "VGG16"):
+		conv_base = VGG16(weights='imagenet', include_top=False, input_shape=(224,224,3))
+		last_conv, conv_layer_names = get_last_conv_layer(conv_base)
+	elif(type == "ResNet50"):
+		conv_base = ResNet50(weights='imagenet', include_top=False, input_shape=(224,224,3))
+		last_conv = conv_base.get_layer('conv5_block3_out')
+	elif(type == "InceptionV3"):
+		conv_base = InceptionV3(weights='imagenet', include_top=False, input_shape=(224,224,3))
+		last_conv = conv_base.get_layer('mixed10')
+	else:
+		conv_base = model
+		last_conv = last_conv_layer
+		
 	#create a model that map input to the last conv layer
-	last_conv_layer_model = keras.Model(model.inputs, last_conv_layer.output)
-	classifier_input = keras.Input(shape=last_conv_layer.output.shape[1:])
-	
+	last_conv_layer_model = keras.Model(conv_base.inputs, last_conv.output)
+	classifier_input = keras.Input(shape=last_conv.output.shape[1:])
+
+	#create a classifier model that map the output of the last conv layer to the output of the loaded model	
 	x = classifier_input
+	if(type != "CNN"):
+		# add the remaing part of the pretrained model
+		for layer_name in conv_layer_names:
+			x = conv_base.get_layer(layer_name)(x)
+	#add the dense part of the loaded model
 	for layer_name in classifier_layer_names:
 		x = model.get_layer(layer_name)(x)
 	classifier_model = keras.Model(classifier_input, x)
-	#classifier_model is composed by last conv layer + le dense part of the network
-
+	
 	return img_tensor, last_conv_layer_model, classifier_model
 
 def create_heatmap(img_tensor,last_conv_layer_model,classifier_model):
@@ -314,8 +339,8 @@ def create_heatmap(img_tensor,last_conv_layer_model,classifier_model):
 	with tf.GradientTape() as tape:
 		last_conv_layer_output = last_conv_layer_model(img_tensor) # output feature maps of the last conv layer.
 		tape.watch(last_conv_layer_output)
-		preds = classifier_model(last_conv_layer_output)  
-		top_pred_index = tf.argmax(preds[0])  #  meningioma_tumor prediction index
+		preds = classifier_model(last_conv_layer_output)
+		top_pred_index = tf.argmax(preds[0])  # meningioma_tumor prediction index
 		top_class_channel = preds[:, top_pred_index] # meningioma_tumor prediction value
 	#Gradient of the meningioma_tumor class with related to the output feature maps of last conv layer
 	grads = tape.gradient(top_class_channel, last_conv_layer_output) 
@@ -343,8 +368,7 @@ def superimposed_img(img_path, heatmaps, save_path):
 	for i, ax in enumerate(axes.flat):
 		heatmap = heatmaps[i]
 		heatmap = np.uint8(255 * heatmap)
-
-		jet = cm.get_cmap("jet")
+		jet = mpl.colormaps.get_cmap("jet")
 		jet_colors = jet(np.arange(256))[:, :3]
 		jet_heatmap = jet_colors[heatmap]
 
