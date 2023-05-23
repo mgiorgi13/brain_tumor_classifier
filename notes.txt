@@ -1,0 +1,16 @@
+Overfitting:
+-   Training Accuracy elevata e Validation Accuracy bassa: Se il modello ottiene un'alta accuracy durante l'addestramento, ma una bassa accuracy durante la validazione, 
+    potrebbe indicare un caso di overfitting. 
+    Il modello ha memorizzato troppo bene i dati di addestramento specifici, ma non è in grado di generalizzare bene su nuovi dati.
+
+-   Training Loss bassa e Validation Loss elevata: Se il modello raggiunge una bassa loss durante l'addestramento, ma una loss elevata durante la validazione, 
+    potrebbe suggerire un caso di overfitting. Il modello è eccessivamente adattato ai dati di addestramento, ma non è in grado di generalizzare bene su nuovi dati, 
+    il che si riflette in una loss più alta durante la validazione.
+
+Underfitting:
+-   Training Accuracy bassa e Validation Accuracy bassa: Se sia la Training Accuracy che la Validation Accuracy sono basse, potrebbe suggerire un caso di underfitting. 
+    Il modello non è in grado di apprendere in modo efficace i pattern dei dati di addestramento né di generalizzare correttamente su nuovi dati.
+
+-   Training Loss elevata e Validation Loss elevata: Se sia la Training Loss che la Validation Loss sono alte, potrebbe indicare un caso di underfitting. 
+    Il modello non è riuscito a imparare in modo sufficiente i pattern dei dati di addestramento e quindi mostra una loss elevata sia durante l'addestramento che 
+    durante la validazione.
