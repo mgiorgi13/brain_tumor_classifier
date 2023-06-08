@@ -6,29 +6,29 @@ from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
-# # su colab
-# dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
-
-# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-# base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
-
-# # Definisci i percorsi per il set di test, di validazione e di addestramento
-# test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
-# val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
-# train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
-
-# per locale
-dataset_path = "BrainTumorDataset"
+# su colab
+dataset_path = "/content/drive/MyDrive/DiDonato_Giorgi"
 
 # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-base_path = "BrainTumorDataset/Preprocessed/Unified"
+base_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Unified"
 
 # Definisci i percorsi per il set di test, di validazione e di addestramento
-test_path = "BrainTumorDataset/Preprocessed/Test"
-val_path = "BrainTumorDataset/Preprocessed/Validation"
-train_path = "BrainTumorDataset/Preprocessed/Train"
+test_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Test"
+val_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Validation"
+train_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Train"
 
-models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
+# # per locale
+# dataset_path = "DiDonato_Giorgi"
+
+# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
+# base_path = "DiDonato_Giorgi/Preprocessed/Unified"
+
+# # Definisci i percorsi per il set di test, di validazione e di addestramento
+# test_path = "DiDonato_Giorgi/Preprocessed/Test"
+# val_path = "DiDonato_Giorgi/Preprocessed/Validation"
+# train_path = "DiDonato_Giorgi/Preprocessed/Train"
+
+models_path = "/content/drive/MyDrive/DiDonato_Giorgi/Models"
 cnn_results_path = os.path.join(models_path, 'CNN')
 vgg16_results_path = os.path.join(models_path, 'VGG16')
 resnet50_results_path = os.path.join(models_path, 'ResNet50')
@@ -222,40 +222,79 @@ def evaluate_model (model, test_generator, model_name, type):
 
 	plot_roc_curve(y_true, y_score, 4, class_labels, model_name, type)
 
-def display_feature_map(layer_names,activations):
+def get_conv_pool_layers(model, img_path, target_size=(224, 224)):
+	img_array = get_img(img_path, target_size=target_size)
+	#get all conv and pooling layers
+	layer_outputs = []
+	layer_names = []
+	for layer in model.layers:
+		if isinstance(layer, (layers.Conv2D, layers.MaxPooling2D)):
+			layer_outputs.append(layer.output)
+			layer_names.append(layer.name)
+	activation_model = keras.Model(inputs=model.input, outputs=layer_outputs)
+
+	# This will return a list of N Numpy arrays:
+	# one array per layer activation
+	activations = activation_model.predict(img_array)
+	return layer_names, activations
+
+def display_feature_map(layer_names, activations, layer_to_show = None, layer_to_skip = 0):
+
+	#skip layers not required
+	layer_names = layer_names[layer_to_skip:]
+	activations = activations[layer_to_skip:]
+
+	layer_counter = layer_to_show
 	# Now let's display our feature maps
 	for layer_name, layer_activation in zip(layer_names, activations):
-			# This is the number of features in the feature map
-			n_features = layer_activation.shape[-1]
+			
+		if layer_to_show != None:
+			if layer_counter <= 0:
+				break
+			layer_counter -= 1
+		
+		# This is the number of features in the feature map
+		n_features = layer_activation.shape[-1]
 
-			# The feature map has shape (1, size, size, n_features)
-			size = layer_activation.shape[1]
+		# The feature map has shape (1, size, size, n_features)
+		size = layer_activation.shape[1]
 
-			# We will tile the activation channels in this matrix
-			n_cols = n_features // images_per_row
-			display_grid = np.zeros((size * n_cols, images_per_row * size))
+		# We will tile the activation channels in this matrix
+		n_cols = n_features // images_per_row
+		display_grid = np.zeros((size * n_cols, images_per_row * size))
 
-			# We'll tile each filter into this big horizontal grid
-			for col in range(n_cols):
-					for row in range(images_per_row):
-							channel_image = layer_activation[0,:, :, col * images_per_row + row]
-							# Post-process the feature to make it visually palatable
-							channel_image -= channel_image.mean()
-							channel_image /= channel_image.std()
-							channel_image *= 64
-							channel_image += 128
-							channel_image = np.clip(channel_image, 0, 255).astype('uint8')
-							display_grid[col * size : (col + 1) * size, row * size : (row + 1) * size] = channel_image
+		# We'll tile each filter into this big horizontal grid
+		for col in range(n_cols):
+				for row in range(images_per_row):
+						channel_image = layer_activation[0,:, :, col * images_per_row + row]
+						# Post-process the feature to make it visually palatable
+						channel_image -= channel_image.mean()
+						channel_image /= channel_image.std()
+						channel_image *= 64
+						channel_image += 128
+						channel_image = np.clip(channel_image, 0, 255).astype('uint8')
+						display_grid[col * size : (col + 1) * size, row * size : (row + 1) * size] = channel_image
 
-			# Display the grid
-			scale = 1. / size
-			plt.figure(figsize=(scale * display_grid.shape[1],
-													scale * display_grid.shape[0]))
-			plt.title(layer_name)
-			plt.grid(False)
-			plt.imshow(display_grid, aspect='auto', cmap='gray')
+		# Display the grid
+		scale = 1. / size
+		plt.figure(figsize=(scale * display_grid.shape[1],
+												scale * display_grid.shape[0]))
+		plt.title(layer_name)
+		plt.grid(False)
+		plt.imshow(display_grid, aspect='auto', cmap='gray')
 			
 	plt.show()
+
+def head(layer_names, activations, number = 5):
+	print("---------------------------------------------------------------------------------------------------------------------------------------------------")
+	display_feature_map(layer_names, activations, number,0)
+	print("---------------------------------------------------------------------------------------------------------------------------------------------------")
+
+def tail(layer_names, activations, number = 5):
+	print("---------------------------------------------------------------------------------------------------------------------------------------------------")
+	skip = len(layer_names) - number
+	display_feature_map(layer_names, activations, number,skip)
+	print("---------------------------------------------------------------------------------------------------------------------------------------------------")
 
 def get_img(img_path, target_size=(224,224)):
     img = image.load_img(img_path, target_size=target_size)
@@ -305,13 +344,14 @@ def GradCAM_process(model, img_path, target_size=(224,224), type='CNN'):
 	#get last conv layer and list of dense part of the pretrained model
 	conv_layer_names = []
 	if(type == "VGG16"):
-		conv_base = VGG16(weights='imagenet', include_top=False, input_shape=(224,224,3))
+		conv_base = model.get_layer('vgg16')
 		last_conv, conv_layer_names = get_last_conv_layer(conv_base)
+		classifier_layer_names.pop(0)
 	elif(type == "ResNet50"):
-		conv_base = ResNet50(weights='imagenet', include_top=False, input_shape=(224,224,3))
+		conv_base = model.get_layer('resnet50')
 		last_conv = conv_base.get_layer('conv5_block3_out')
 	elif(type == "InceptionV3"):
-		conv_base = InceptionV3(weights='imagenet', include_top=False, input_shape=(224,224,3))
+		conv_base = model.get_layer('inception_v3')
 		last_conv = conv_base.get_layer('mixed10')
 	else:
 		conv_base = model
