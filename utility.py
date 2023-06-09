@@ -6,29 +6,29 @@ from tensorflow.keras import backend as K
 from itertools import cycle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 
-# # su colab
-# dataset_path = "/content/drive/MyDrive/BrainTumorDataset"
-
-# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-# base_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Unified"
-
-# # Definisci i percorsi per il set di test, di validazione e di addestramento
-# test_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Test"
-# val_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Validation"
-# train_path = "/content/drive/MyDrive/BrainTumorDataset/Preprocessed/Train"
-
-# per locale
-dataset_path = "BrainTumorDataset"
+# su colab
+dataset_path = "/content/drive/MyDrive/DiDonato_Giorgi"
 
 # Percorso della cartella "unified" che contiene le sottocartelle delle classi
-base_path = "BrainTumorDataset/Preprocessed/Unified"
+base_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Unified"
 
 # Definisci i percorsi per il set di test, di validazione e di addestramento
-test_path = "BrainTumorDataset/Preprocessed/Test"
-val_path = "BrainTumorDataset/Preprocessed/Validation"
-train_path = "BrainTumorDataset/Preprocessed/Train"
+test_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Test"
+val_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Validation"
+train_path = "/content/drive/MyDrive/DiDonato_Giorgi/Preprocessed/Train"
 
-models_path = "/content/drive/MyDrive/BrainTumorDataset/Models"
+# # per locale
+# dataset_path = "DiDonato_Giorgi"
+
+# # Percorso della cartella "unified" che contiene le sottocartelle delle classi
+# base_path = "DiDonato_Giorgi/Preprocessed/Unified"
+
+# # Definisci i percorsi per il set di test, di validazione e di addestramento
+# test_path = "DiDonato_Giorgi/Preprocessed/Test"
+# val_path = "DiDonato_Giorgi/Preprocessed/Validation"
+# train_path = "DiDonato_Giorgi/Preprocessed/Train"
+
+models_path = "/content/drive/MyDrive/DiDonato_Giorgi/Models"
 cnn_results_path = os.path.join(models_path, 'CNN')
 vgg16_results_path = os.path.join(models_path, 'VGG16')
 resnet50_results_path = os.path.join(models_path, 'ResNet50')
@@ -346,6 +346,7 @@ def GradCAM_process(model, img_path, target_size=(224,224), type='CNN'):
 	if(type == "VGG16"):
 		conv_base = model.get_layer('vgg16')
 		last_conv, conv_layer_names = get_last_conv_layer(conv_base)
+		classifier_layer_names.pop(0)
 	elif(type == "ResNet50"):
 		conv_base = model.get_layer('resnet50')
 		last_conv = conv_base.get_layer('conv5_block3_out')
